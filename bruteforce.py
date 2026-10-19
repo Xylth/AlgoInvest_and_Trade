@@ -8,18 +8,23 @@ parser = argparse.ArgumentParser(description="Algo bruteforce")
 parser.add_argument("dataset_name", help="Nom du fichier de données")
 args = parser.parse_args()
 
-#importation du dataset et initialisation de la liste des résultats
+#importation du dataset et initialisation des variables
 data = import_data(args.dataset_name)
 results =  [{"idx_share": -1,"cost": 0 ,"gain": 0, "previous":-1}]
 n = len(data)
 best_comb = results[0]
-operation = 0
+operations = 0
+
 costs = data["cost"].tolist()
 gains = data["gain"].tolist()
 names = data["name"].tolist()
 performances = data["performance"].tolist()
+
+#parcours de toutes les actions
 for idx in range(n):
     cost, gain= costs[idx],gains[idx]
+    
+    #parcours de toutes les solution précedentes
     for previous_idx in range(len(results)):
         result = results[previous_idx]
         new_cost = result["cost"] + cost
@@ -28,11 +33,11 @@ for idx in range(n):
             if((best_comb["gain"]<new_result["gain"]) or ((best_comb["gain"] == new_result["gain"]) and (best_comb["cost"]>new_cost))):
                 best_comb = new_result
             results.append(new_result)
-        operation += 1
+        operations += 1
     
 #affichage de la meilleure combinaison d'actions
 
-print(f"Done in {operation} steps")
+print(f"Done in {operations} steps")
 if (best_comb["cost"]>0):
     print(f"The best investment returns {best_comb['gain']:.2f}€ with a cost of {best_comb['cost']:.2f}€ for a global performance of {best_comb['gain']/best_comb['cost']*100:.2f}%")
     print("Combination of actions:")

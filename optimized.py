@@ -8,49 +8,52 @@ parser = argparse.ArgumentParser(description="Algo optimisé")
 parser.add_argument("dataset_name", help="Nom du fichier de données")
 args = parser.parse_args()
 
-#importation du dataset et initialisation de la liste des résultats
+#importation du dataset et initialisation des variables
 data = import_data(args.dataset_name)
+data["cost_cents"] = (data["cost"] * 100).round().astype(int)
 
-costline = [-1] * ((BUDGET * 100 )+1)
-nodes = []
-empty_node = {
-            "cost":0,
-            "gain":0,
-            "shares": []
-        }
-nodes.append(empty_node)
-costline[0] = 0
-best_node = 0
-operation = 0 
-new_node = empty_node
-for idx, element in data.iterrows():
-    for cursor in range(len(costline)-1, -1, -1):
-        if costline[cursor] != -1:
-            target_cost = cursor + int(element["cost"]*100)
-            if target_cost <= BUDGET*100:
-                new_node = {
-                    "cost": target_cost/100 ,
-                    "gain":nodes[costline[cursor]]["gain"] + element["gain"],
-                    "shares": nodes[costline[cursor]]["shares"] + [idx]
-                } 
-                if costline[target_cost]==-1:
-                    nodes.append(new_node)
-                    costline[target_cost]=len(nodes)-1
-                else:
-                    if new_node["gain"]>nodes[costline[target_cost]]["gain"]:
-                        nodes[costline[target_cost]]=new_node
-                if nodes[best_node]["gain"]<new_node["gain"]:
-                    best_node = costline[int(new_node["cost"]*100)]
-        operation += 1
-        
-        
+n = len(data)
 
-#affichage de la meilleure combinaison d'actions
-print(f"The best investment returns {nodes[best_node]['gain']:.2f}€ with a cost of {nodes[best_node]['cost']}€ for a global performance of {nodes[best_node]['gain']/nodes[best_node]['cost']*100:.2f}%")
-print("Combination of actions:")
-for share in nodes[best_node]["shares"]:
-    print(f"- {data.loc[share]['name']} with a cost of {data.loc[share]['cost']}€ and a performance of {data.loc[share]['performance']}% provides a gain of {data.loc[share]['gain']:.2f}€")
 
-                
-            
+total_gain = 0
+shares = []
+money = BUDGET * 100
+best = [0.0] * ((BUDGET*100) +1)
+table = [bytearray((BUDGET*100) +1) for _ in range(n)]
+costs = data["cost_cents"].tolist()
+gains = data["gain"].tolist()
+
+#parcours de toutes les actions
+for idx in range(n):
+    cost,gain,line = costs[idx], gains[idx], table[idx]
     
+    #parcours de toutes les valeurs en centimes
+    for step in range(BUDGET*100, cost - 1,-1):
+        new_val = best[step-cost]+gain
+        if new_val>best[step]:
+            best[step]=new_val
+            line[step] = 1
+
+#determination du gain max et du cost min
+gain_max = best[BUDGET*100]
+while((money>0) and (best[money-1]==gain_max)):
+    money-=1
+total_cost = money / 100
+
+#recupération des actions sélectionnées
+for idx in range (n-1,-1,-1):
+    if(money<=0):
+        break
+    if(table[idx][money]==1):
+        total_gain += gains[idx]
+        shares.append(idx)
+        money -= costs[idx]
+
+#affichage de la solution
+if(total_cost>0):
+    print(f"The best investment returns {total_gain:.2f}€ with a cost of {total_cost:.2f}€ for a global performance of {total_gain/total_cost*100:.2f}%")
+    print("Combination of actions:")
+    for share in data.iloc[shares].itertuples():
+        print(f"- {share.name} with a cost of {share.cost}€ and a performance of {share.performance}% provides a gain of {share.gain:.2f}€")
+else:
+    print("No investment possible in the budget")
