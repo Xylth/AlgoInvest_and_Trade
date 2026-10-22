@@ -13,7 +13,6 @@ data = import_data(args.dataset_name)
 results =  [{"idx_share": -1,"cost": 0 ,"gain": 0, "previous":-1}]
 n = len(data)
 best_comb = results[0]
-operations = 0
 
 costs = data["cost"].tolist()
 gains = data["gain"].tolist()
@@ -28,16 +27,15 @@ for idx in range(n):
     for previous_idx in range(len(results)):
         result = results[previous_idx]
         new_cost = result["cost"] + cost
-        if(new_cost<=BUDGET):
-            new_result = {"idx_share" : idx, "cost": new_cost ,"gain": result["gain"] + gain, "previous": previous_idx }
-            if((best_comb["gain"]<new_result["gain"]) or ((best_comb["gain"] == new_result["gain"]) and (best_comb["cost"]>new_cost))):
-                best_comb = new_result
-            results.append(new_result)
-        operations += 1
-    
-#affichage de la meilleure combinaison d'actions
+        new_result = {"idx_share" : idx, "cost": new_cost ,"gain": result["gain"] + gain, "previous": previous_idx }
+        results.append(new_result)
 
-print(f"Done in {operations} steps")
+#parcours du tableau pour trouver la meilleure solution    
+for result in results:
+    if((result["cost"]< BUDGET) and ((best_comb["gain"]< result["gain"]) or ((best_comb["gain"] == result["gain"]) and (best_comb["cost"]>result["cost"])))):
+        best_comb = new_result
+        
+#affichage de la meilleure combinaison d'actions
 if (best_comb["cost"]>0):
     print(f"The best investment returns {best_comb['gain']:.2f}€ with a cost of {best_comb['cost']:.2f}€ for a global performance of {best_comb['gain']/best_comb['cost']*100:.2f}%")
     print("Combination of actions:")
