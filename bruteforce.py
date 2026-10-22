@@ -33,7 +33,7 @@ for idx in range(n):
 #parcours du tableau pour trouver la meilleure solution    
 for result in results:
     if((result["cost"]< BUDGET) and ((best_comb["gain"]< result["gain"]) or ((best_comb["gain"] == result["gain"]) and (best_comb["cost"]>result["cost"])))):
-        best_comb = new_result
+        best_comb = result
         
 #affichage de la meilleure combinaison d'actions
 if (best_comb["cost"]>0):
